@@ -1,0 +1,21 @@
+There are total 8 threads, indexed 0 to 7
+
+there are 7 services and 1 sequencer which are assigned to threads. 
+all threads use semaphores for synchronization
+
+services are assigned to threads with index 1 to 7
+sequencer is assigned to thread with index 0
+
+gettimeofday() returns time in seconds and microseconds since the epoch. The time is returned in timeval struct, use of timezone struct is obsolete and it should ideally be set to NULL. 
+
+service 1 executes for 90 times! = 3 Hz = each second it executes thrice
+service 2 executes for 30 times! = 1 Hz = each second it executes once
+service 3 executes for 15 times! = 0.5 Hz executes once every two seconds
+service 4 executes for 30 times! = 1 Hz = executes once every second
+service 5 executes for 15 times! = 0.5 Hz executes once every two seconds
+service 6 executes for 30 times! = 1 Hz executes once every second
+service 7 executes for 3 times!  = 0.1 Hz once every 10 sec
+
+3.3333 x 10 ^ -4
+
+0.333 msec
