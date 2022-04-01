@@ -1,8 +1,9 @@
 /* ========================================================================== */
 /*                                                                            */
+/*   seqgen2x.c                                                               */
 // Sam Siewert, December 2017
 //
-// Sequencer Generic
+// Sequencer Generic @ 2x Rate for 10Hz Capture
 //
 // The purpose of this code is to provide an example for how to best
 // sequence a set of periodic services for problems similar to and including
@@ -25,33 +26,33 @@
 // clock images (unique second hand / seconds) per image, you might use the 
 // following rates for each service:
 //
-// Sequencer - 30 Hz 
+// Sequencer - 60 Hz 
 //                   [gives semaphores to all other services]
-// Service_1 - 3 Hz  , every 10th Sequencer loop
+// Service_1 - 30 Hz, every other Sequencer loop
 //                   [buffers 3 images per second]
-// Service_2 - 1 Hz  , every 30th Sequencer loop 
+// Service_2 - 10 Hz, every 6th Sequencer loop 
 //                   [time-stamp middle sample image with cvPutText or header]
-// Service_3 - 0.5 Hz, every 60th Sequencer loop
+// Service_3 - 5 Hz , every 12th Sequencer loop
 //                   [difference current and previous time stamped images]
-// Service_4 - 1 Hz, every 30th Sequencer loop
+// Service_4 - 10 Hz, every 6th Sequencer loop
 //                   [save time stamped image with cvSaveImage or write()]
-// Service_5 - 0.5 Hz, every 60th Sequencer loop
+// Service_5 - 5 Hz , every 12th Sequencer loop
 //                   [save difference image with cvSaveImage or write()]
-// Service_6 - 1 Hz, every 30th Sequencer loop
+// Service_6 - 10 Hz, every 6th Sequencer loop
 //                   [write current time-stamped image to TCP socket server]
-// Service_7 - 0.1 Hz, every 300th Sequencer loop
+// Service_7 - 1 Hz , every 60th Sequencer loop
 //                   [syslog the time for debug]
 //
 // With the above, priorities by RM policy would be:
 //
-// Sequencer = RT_MAX	@ 30 Hz
-// Servcie_1 = RT_MAX-1	@ 3 Hz
-// Service_2 = RT_MAX-2	@ 1 Hz
-// Service_3 = RT_MAX-3	@ 0.5 Hz
-// Service_4 = RT_MAX-2	@ 1 Hz
-// Service_5 = RT_MAX-3	@ 0.5 Hz
-// Service_6 = RT_MAX-2	@ 1 Hz
-// Service_7 = RT_MIN	0.1 Hz
+// Sequencer = RT_MAX	@ 60 Hz
+// Servcie_1 = RT_MAX-1	@ 30 Hz
+// Service_2 = RT_MAX-2	@ 10 Hz
+// Service_3 = RT_MAX-3	@ 5  Hz
+// Service_4 = RT_MAX-2	@ 10 Hz
+// Service_5 = RT_MAX-3	@ 5  Hz
+// Service_6 = RT_MAX-2	@ 10 Hz
+// Service_7 = RT_MIN	@ 1  Hz
 //
 // Here are a few hardware/platform configuration settings on your Jetson
 // that you should also check before running this code:
@@ -85,7 +86,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
-#include <time.h>
+
 #include <pthread.h>
 #include <sched.h>
 #include <time.h>
@@ -150,10 +151,10 @@ void main(void)
     pid_t mainpid;
     cpu_set_t allcpuset;
 
-    printf("Starting Sequencer Demo\n");
+    printf("Starting High Rate Sequencer Demo\n");
     gettimeofday(&start_time_val, (struct timezone *)0);
     gettimeofday(&current_time_val, (struct timezone *)0);
-    syslog(LOG_CRIT, "Sequencer @ sec=%d, msec=%d\n", (int)(current_time_val.tv_sec-start_time_val.tv_sec), (int)current_time_val.tv_usec/USEC_PER_MSEC);
+    syslog(LOG_CRIT, "START High Rate Sequencer @ sec=%d, msec=%d\n", (int)(current_time_val.tv_sec-start_time_val.tv_sec), (int)current_time_val.tv_usec/USEC_PER_MSEC);
 
    printf("System has %d processors configured and %d available.\n", get_nprocs_conf(), get_nprocs());
 
@@ -172,7 +173,7 @@ void main(void)
     if (sem_init (&semS3, 0, 0)) { printf ("Failed to initialize S3 semaphore\n"); exit (-1); }
     if (sem_init (&semS4, 0, 0)) { printf ("Failed to initialize S4 semaphore\n"); exit (-1); }
     if (sem_init (&semS5, 0, 0)) { printf ("Failed to initialize S5 semaphore\n"); exit (-1); }
-    if (sem_init (&semS6, 0, 0)) { printf ("Fa100iled to initialize S6 semaphore\n"); exit (-1); }
+    if (sem_init (&semS6, 0, 0)) { printf ("Failed to initialize S6 semaphore\n"); exit (-1); }
     if (sem_init (&semS7, 0, 0)) { printf ("Failed to initialize S7 semaphore\n"); exit (-1); }
 
     mainpid=getpid();
@@ -221,7 +222,7 @@ void main(void)
     // Create Service threads which will block awaiting release for:
     //
 
-    // Servcie_1 = RT_MAX-1	@ 3 Hz
+    // Servcie_1 = RT_MAX-1	@ 30 Hz
     //
     rt_param[1].sched_priority=rt_max_prio-1;
     pthread_attr_setschedparam(&rt_sched_attr[1], &rt_param[1]);
@@ -237,7 +238,7 @@ void main(void)
         printf("pthread_create successful for service 1\n");
 
 
-    // Service_2 = RT_MAX-2	@ 1 Hz
+    // Service_2 = RT_MAX-2	@ 10 Hz
     //
     rt_param[2].sched_priority=rt_max_prio-2;
     pthread_attr_setschedparam(&rt_sched_attr[2], &rt_param[2]);
@@ -248,7 +249,7 @@ void main(void)
         printf("pthread_create successful for service 2\n");
 
 
-    // Service_3 = RT_MAX-3	@ 0.5 Hz
+    // Service_3 = RT_MAX-3	@ 5 Hz
     //
     rt_param[3].sched_priority=rt_max_prio-3;
     pthread_attr_setschedparam(&rt_sched_attr[3], &rt_param[3]);
@@ -259,9 +260,9 @@ void main(void)
         printf("pthread_create successful for service 3\n");
 
 
-    // Service_4 = RT_MAX-2	@ 1 Hz
+    // Service_4 = RT_MAX-2	@ 10 Hz
     //
-    rt_param[4].sched_priority=rt_max_prio-2;
+    rt_param[4].sched_priority=rt_max_prio-3;
     pthread_attr_setschedparam(&rt_sched_attr[4], &rt_param[4]);
     rc=pthread_create(&threads[4], &rt_sched_attr[4], Service_4, (void *)&(threadParams[4]));
     if(rc < 0)
@@ -270,7 +271,7 @@ void main(void)
         printf("pthread_create successful for service 4\n");
 
 
-    // Service_5 = RT_MAX-3	@ 0.5 Hz
+    // Service_5 = RT_MAX-3	@ 5 Hz
     //
     rt_param[5].sched_priority=rt_max_prio-3;
     pthread_attr_setschedparam(&rt_sched_attr[5], &rt_param[5]);
@@ -281,7 +282,7 @@ void main(void)
         printf("pthread_create successful for service 5\n");
 
 
-    // Service_6 = RT_MAX-2	@ 1 Hz
+    // Service_6 = RT_MAX-2	@ 10 Hz
     //
     rt_param[6].sched_priority=rt_max_prio-2;
     pthread_attr_setschedparam(&rt_sched_attr[6], &rt_param[6]);
@@ -292,7 +293,7 @@ void main(void)
         printf("pthread_create successful for service 6\n");
 
 
-    // Service_7 = RT_MIN	0.1 Hz
+    // Service_7 = RT_MIN	1 Hz
     //
     rt_param[7].sched_priority=rt_min_prio;
     pthread_attr_setschedparam(&rt_sched_attr[7], &rt_param[7]);
@@ -303,7 +304,7 @@ void main(void)
         printf("pthread_create successful for service 7\n");
 
 
-    // Wait for service threads to initialize and await release by sequencer.
+    // Wait for service threads to initialize and await relese by sequencer.
     //
     // Note that the sleep is not necessary of RT service threads are created wtih 
     // correct POSIX SCHED_FIFO priorities compared to non-RT priority of this main
@@ -313,9 +314,9 @@ void main(void)
  
     // Create Sequencer thread, which like a cyclic executive, is highest prio
     printf("Start sequencer\n");
-    threadParams[0].sequencePeriods=900;
+    threadParams[0].sequencePeriods=1800;
 
-    // Sequencer = RT_MAX	@ 30 Hz
+    // Sequencer = RT_MAX	@ 60 Hz
     //
     rt_param[0].sched_priority=rt_max_prio;
     pthread_attr_setschedparam(&rt_sched_attr[0], &rt_param[0]);
@@ -336,7 +337,7 @@ void main(void)
 void *Sequencer(void *threadp)
 {
     struct timeval current_time_val;
-    struct timespec delay_time = {0,33333333}; // delay for 33.33 msec, 30 Hz
+    struct timespec delay_time = {0,16666666}; // delay for 16.67 msec, 60 Hz
     struct timespec remaining_time;
     double current_time;
     double residual;
@@ -384,26 +385,26 @@ void *Sequencer(void *threadp)
 
         // Release each service at a sub-rate of the generic sequencer rate
 
-        // Servcie_1 = RT_MAX-1	@ 3 Hz
-        if((seqCnt % 10) == 0) sem_post(&semS1);
+        // Servcie_1 = RT_MAX-1	@ 30 Hz
+        if((seqCnt % 2) == 0) sem_post(&semS1);
 
-        // Service_2 = RT_MAX-2	@ 1 Hz
-        if((seqCnt % 30) == 0) sem_post(&semS2);
+        // Service_2 = RT_MAX-2	@ 10 Hz
+        if((seqCnt % 6) == 0) sem_post(&semS2);
 
-        // Service_3 = RT_MAX-3	@ 0.5 Hz
-        if((seqCnt % 60) == 0) sem_post(&semS3);
+        // Service_3 = RT_MAX-3	@ 5 Hz
+        if((seqCnt % 12) == 0) sem_post(&semS3);
 
-        // Service_4 = RT_MAX-2	@ 1 Hz
-        if((seqCnt % 30) == 0) sem_post(&semS4);
+        // Service_4 = RT_MAX-2	@ 10 Hz
+        if((seqCnt % 6) == 0) sem_post(&semS4);
 
-        // Service_5 = RT_MAX-3	@ 0.5 Hz
-        if((seqCnt % 60) == 0) sem_post(&semS5);
+        // Service_5 = RT_MAX-3	@ 5 Hz
+        if((seqCnt % 12) == 0) sem_post(&semS5);
 
-        // Service_6 = RT_MAX-2	@ 1 Hz
-        if((seqCnt % 30) == 0) sem_post(&semS6);
+        // Service_6 = RT_MAX-2	@ 10 Hz
+        if((seqCnt % 6) == 0) sem_post(&semS6);
 
-        // Service_7 = RT_MIN	0.1 Hz
-        if((seqCnt % 300) == 0) sem_post(&semS7);
+        // Service_7 = RT_MIN	1 Hz
+        if((seqCnt % 60) == 0) sem_post(&semS7);
 
         //gettimeofday(&current_time_val, (struct timezone *)0);
         //syslog(LOG_CRIT, "Sequencer release all sub-services @ sec=%d, msec=%d\n", (int)(current_time_val.tv_sec-start_time_val.tv_sec), (int)current_time_val.tv_usec/USEC_PER_MSEC);
@@ -433,14 +434,15 @@ int worst_case_execution_time(long int arr[], int length)
     return maximum_value;
 }
 
-void *Service_1(void *threadp)
+
+void *Service_1(void *threadp)  //executes 900 times
 {
     int iteration =0;
     int worst_case_execution_time_s1 = 0;
     struct timespec start_time = {0, 0};
     struct timespec finish_time = {0, 0};
     struct timespec thread_dt = {0, 0};
-    long int wcets1[90];
+    long int wcets1[900];
     struct timeval current_time_val;
     double current_time;
     unsigned long long S1Cnt=0;
@@ -461,7 +463,7 @@ void *Service_1(void *threadp)
         clock_gettime(CLOCK_REALTIME, &finish_time);
         delta_t(&finish_time, &start_time, &thread_dt);
         wcets1[iteration]= thread_dt.tv_nsec;
-        //syslog(LOG_INFO, "Time Taken for Service 1: %ld for iteration %d:\n",thread_dt.tv_nsec, iteration);
+        //printf("Time Taken for Service 1: %ld for iteration %d:\n",thread_dt.tv_nsec, iteration);
         syslog(LOG_CRIT, "Service 1: Frame Sampler release %llu @ sec=%d, msec=%d\n", S1Cnt, (int)(current_time_val.tv_sec-start_time_val.tv_sec), (int)current_time_val.tv_usec/USEC_PER_MSEC);
         iteration++;
     }
@@ -472,11 +474,11 @@ void *Service_1(void *threadp)
 }
 
 
-void *Service_2(void *threadp)
+void *Service_2(void *threadp) //executes 300 times
 {
     int iteration =0;
     int worst_case_execution_time_s2 = 0;
-    long int wcets2[90];
+    long int wcets2[900];
     
     struct timespec start_time = {0, 0};
     struct timespec finish_time = {0, 0};
@@ -501,8 +503,8 @@ void *Service_2(void *threadp)
         
         clock_gettime(CLOCK_REALTIME, &finish_time);
         delta_t(&finish_time, &start_time, &thread_dt);
-       wcets2[iteration]= thread_dt.tv_nsec;
-      //  printf("Time Taken for Service 2: %ld for iteration %d:\n",thread_dt.tv_nsec, iteration);
+        wcets2[iteration]= thread_dt.tv_nsec;
+        //printf("Time Taken for Service 2: %ld for iteration %d:\n",thread_dt.tv_nsec, iteration);
         iteration++;
          
         syslog(LOG_CRIT, "Service 2: Time-stamp with Image Analysis release %llu @ sec=%d, msec=%d\n", S2Cnt, (int)(current_time_val.tv_sec-start_time_val.tv_sec), (int)current_time_val.tv_usec/USEC_PER_MSEC);
@@ -514,12 +516,12 @@ void *Service_2(void *threadp)
     pthread_exit((void *)0);
 }
 
-void *Service_3(void *threadp)
+void *Service_3(void *threadp) //executes 150 times
 {
     
     int iteration =0;
     int max_wcet= 0;
-    long int wcets[90];
+    long int wcets[900];
     struct timespec start_time = {0, 0};
     struct timespec finish_time = {0, 0};
     struct timespec thread_dt = {0, 0};
@@ -553,11 +555,11 @@ void *Service_3(void *threadp)
     pthread_exit((void *)0);
 }
 
-void *Service_4(void *threadp)
+void *Service_4(void *threadp) //executes 300 times
 {
     int iteration =0;
     int max_wcet= 0;
-    long int wcets[90];
+    long int wcets[900];
     struct timespec start_time = {0, 0};
     struct timespec finish_time = {0, 0};
     struct timespec thread_dt = {0, 0};
@@ -581,7 +583,7 @@ void *Service_4(void *threadp)
         clock_gettime(CLOCK_REALTIME, &finish_time);
         delta_t(&finish_time, &start_time, &thread_dt);
         wcets[iteration]= thread_dt.tv_nsec;
-       // printf("Time Taken for Service 4: %ld for iteration %d:\n",thread_dt.tv_nsec, iteration);
+        //printf("Time Taken for Service 4: %ld for iteration %d:\n",thread_dt.tv_nsec, iteration);
         iteration++;
         
         syslog(LOG_CRIT, "Service 4: Time-stamp Image Save to File release %llu @ sec=%d, msec=%d\n", S4Cnt, (int)(current_time_val.tv_sec-start_time_val.tv_sec), (int)current_time_val.tv_usec/USEC_PER_MSEC);
@@ -591,11 +593,11 @@ void *Service_4(void *threadp)
     pthread_exit((void *)0);
 }
 
-void *Service_5(void *threadp)
+void *Service_5(void *threadp)  //executes 150 times
 {
     int iteration =0;
     int max_wcet= 0;
-    long int wcets[90];
+    long int wcets[900];
     struct timeval current_time_val;
     double current_time;
     unsigned long long S5Cnt=0;
@@ -619,7 +621,7 @@ void *Service_5(void *threadp)
         clock_gettime(CLOCK_REALTIME, &finish_time);
         delta_t(&finish_time, &start_time, &thread_dt);
         wcets[iteration]= thread_dt.tv_nsec;
-      //  printf("Time Taken for Service 5: %ld for iteration %d:\n",thread_dt.tv_nsec, iteration);
+        //printf("Time Taken for Service 5: %ld for iteration %d:\n",thread_dt.tv_nsec, iteration);
         iteration++;
         syslog(LOG_CRIT, "Service 5: Processed Image Save to File release %llu @ sec=%d, msec=%d\n", S5Cnt, (int)(current_time_val.tv_sec-start_time_val.tv_sec), (int)current_time_val.tv_usec/USEC_PER_MSEC);
     }
@@ -628,14 +630,14 @@ void *Service_5(void *threadp)
     pthread_exit((void *)0);
 }
 
-void *Service_6(void *threadp)
+void *Service_6(void *threadp) //executes 300 times
 {
    struct timespec start_time = {0, 0};
    struct timespec finish_time = {0, 0};
     struct timespec thread_dt = {0, 0};
     int iteration =0;
     int max_wcet= 0;
-   long int wcets[90];
+   long int wcets[900];
     struct timeval current_time_val;
     double current_time;
     unsigned long long S6Cnt=0;
@@ -664,14 +666,14 @@ void *Service_6(void *threadp)
     pthread_exit((void *)0);
 }
 
-void *Service_7(void *threadp)
+void *Service_7(void *threadp) //executes 30 times
 {
     struct timespec start_time = {0, 0};
     struct timespec finish_time = {0, 0};
     struct timespec thread_dt = {0, 0};
     int iteration =0;
     int max_wcet= 0;
-    long int wcets[90];
+    long int wcets[900];
     struct timeval current_time_val;
     double current_time;
     unsigned long long S7Cnt=0;

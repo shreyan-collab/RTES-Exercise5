@@ -1,0 +1,12 @@
+sequencer runs for 1800 cycles
+Frequency of sequencer is 60 hz
+Frequency of all services is made 10 times of what it was in seqgen.c
+
+Service 1 runs for 900 times
+service 2 runs for 300 times
+service 3 runs for 150 times
+service 4 runs for 300 times
+service 5 runs for 150 times
+service 6 runs for 300 times
+service 7 runs for 30 times
+
