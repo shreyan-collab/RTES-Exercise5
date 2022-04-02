@@ -336,7 +336,7 @@ void main(void)
 void *Sequencer(void *threadp)
 {
     struct timeval current_time_val;
-    struct timespec delay_time = {0,33333333}; // delay for 33.33 msec, 30 Hz
+    struct timespec delay_time = {0,333333}; // delay for 333.33 usec, 3000 Hz
     struct timespec remaining_time;
     double current_time;
     double residual;
@@ -384,25 +384,25 @@ void *Sequencer(void *threadp)
 
         // Release each service at a sub-rate of the generic sequencer rate
 
-        // Servcie_1 = RT_MAX-1	@ 3 Hz
+        // Servcie_1 = RT_MAX-1	@ 300 Hz
         if((seqCnt % 10) == 0) sem_post(&semS1);
 
-        // Service_2 = RT_MAX-2	@ 1 Hz
+        // Service_2 = RT_MAX-2	@ 100 Hz
         if((seqCnt % 30) == 0) sem_post(&semS2);
 
-        // Service_3 = RT_MAX-3	@ 0.5 Hz
+        // Service_3 = RT_MAX-3	@ 50 Hz
         if((seqCnt % 60) == 0) sem_post(&semS3);
 
-        // Service_4 = RT_MAX-2	@ 1 Hz
+        // Service_4 = RT_MAX-2	@ 100 Hz
         if((seqCnt % 30) == 0) sem_post(&semS4);
 
-        // Service_5 = RT_MAX-3	@ 0.5 Hz
+        // Service_5 = RT_MAX-3	@ 50 Hz
         if((seqCnt % 60) == 0) sem_post(&semS5);
 
-        // Service_6 = RT_MAX-2	@ 1 Hz
+        // Service_6 = RT_MAX-2	@ 100 Hz
         if((seqCnt % 30) == 0) sem_post(&semS6);
 
-        // Service_7 = RT_MIN	0.1 Hz
+        // Service_7 = RT_MIN	@ 10 Hz
         if((seqCnt % 300) == 0) sem_post(&semS7);
 
         //gettimeofday(&current_time_val, (struct timezone *)0);
