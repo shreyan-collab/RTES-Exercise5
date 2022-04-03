@@ -151,13 +151,15 @@ void
 Service_1(void *threadp)
 {
     uint32_t before, after;
+    int i;
 
     while(!abortS1)
     {
         xSemaphoreTake(semS1, portMAX_DELAY);
-        before = gettime();
-        FIB_TEST(470,2000);
-        after = gettime();
+        before = xTaskGetTickCount();
+        //FIB_TEST(47,500);
+        for (i=0; i<10900; i++);
+        after = xTaskGetTickCount();
         wcets1[S1Cnt] = after - before;
         S1Cnt++;
     }
@@ -172,13 +174,15 @@ void
 Service_2(void *threadp)
 {
     uint32_t before, after;
+    int i;
 
     while(!abortS2)
     {
         xSemaphoreTake(semS2, portMAX_DELAY);
-        before = gettime();
-        FIB_TEST(470,2000);
-        after = gettime();
+        before = xTaskGetTickCount();
+        //FIB_TEST(47,500);
+        for (i=0; i<10900; i++);
+        after = xTaskGetTickCount();
         wcets2[S2Cnt] = after - before;
         S2Cnt++;
     }
@@ -195,13 +199,15 @@ void
 Service_3(void *threadp)
 {
     uint32_t before, after;
+    int i;
 
     while(!abortS3)
     {
         xSemaphoreTake(semS3, portMAX_DELAY);
-        before = gettime();
-        FIB_TEST(470,2000);
-        after = gettime();
+        before = xTaskGetTickCount();
+        //FIB_TEST(47,500);
+        for (i=0; i<10900; i++);
+        after = xTaskGetTickCount();
         wcets3[S3Cnt] = after - before;
         S3Cnt++;
     }
@@ -217,13 +223,15 @@ void
 Service_4(void *threadp)
 {
     uint32_t before, after;
+    int i;
 
     while(!abortS4)
     {
         xSemaphoreTake(semS4, portMAX_DELAY);
-        before = gettime();
-        FIB_TEST(470,2000);
-        after = gettime();
+        before = xTaskGetTickCount();
+        //FIB_TEST(47,500);
+        for (i=0; i<10900; i++);
+        after = xTaskGetTickCount();
         wcets4[S4Cnt] = after - before;
         S4Cnt++;
     }
@@ -239,13 +247,15 @@ void
 Service_5(void *threadp)
 {
     uint32_t before, after;
+    int i;
 
     while(!abortS5)
     {
         xSemaphoreTake(semS5, portMAX_DELAY);
-        before = gettime();
-        FIB_TEST(470,2000);
-        after = gettime();
+        before = xTaskGetTickCount();
+        //FIB_TEST(47,500);
+        for (i=0; i<10900; i++);
+        after = xTaskGetTickCount();
         wcets5[S5Cnt] = after - before;
         S5Cnt++;
     }
@@ -261,13 +271,15 @@ void
 Service_6(void *threadp)
 {
     uint32_t before, after;
+    int i;
 
     while(!abortS6)
     {
         xSemaphoreTake(semS6, portMAX_DELAY);
-        before = gettime();
-        FIB_TEST(470,2000);
-        after = gettime();
+        before = xTaskGetTickCount();
+        //FIB_TEST(47,500);
+        for (i=0; i<10900; i++);
+        after = xTaskGetTickCount();
         wcets6[S6Cnt] = after - before;
         S6Cnt++;
     }
@@ -283,13 +295,15 @@ void
 Service_7(void *threadp)
 {
     uint32_t before, after;
+    int i;
 
     while(!abortS7)
     {
         xSemaphoreTake(semS7, portMAX_DELAY);
-        before = gettime();
-        FIB_TEST(470,2000);
-        after = gettime();
+        before = xTaskGetTickCount();
+        //FIB_TEST(47,500);
+        for (i=0; i<10900; i++);
+        after = xTaskGetTickCount();
         wcets7[S7Cnt] = after - before;
         S7Cnt++;
     }
